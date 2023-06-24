@@ -14,23 +14,35 @@ export function Gallery() {
       return;
     }
 
-    ImageService.getImages(query, page);
+    (async () => {
+      const {
+        data: { photos, total_results },
+      } = await ImageService.getImages(query, page);
+
+      setShowBtn(page < Math.ceil(total_results / 15));
+
+      setImages(photos);
+    })();
   }, [page, query]);
 
-  const onSubmit = value => setQuery(value);;
-  
+  const onSubmit = value => setQuery(value);
+
   return (
     <>
       <SearchForm onSubmit={onSubmit} />
-      <Text textAlign="center">Sorry. There are no images ... 😭</Text>
+      {!images.length && (
+        <Text textAlign="center">Sorry. There are no images ... 😭</Text>
+      )}
       <Grid>
-        {images.map(image => (
-          <GridItem key={image.id}>
-            <CardItem />
+        {images.map(({ alt, src: { medium }, id, avg_color }) => (
+          <GridItem key={id}>
+            <CardItem color={avg_color}>
+              <img src={medium} alt={alt} />
+            </CardItem>
           </GridItem>
         ))}
       </Grid>
-      <Button>Load more</Button>
+      {showBtn && <Button>Load more</Button>}
     </>
   );
 }
